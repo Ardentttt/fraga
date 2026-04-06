@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FRAGA — Herramientas de Corte & Abrasivos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,700;1,300&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --bg:      #f0f6ff;
+    --surface: #ffffff;
+    --border:  #c8ddf5;
+    --accent:  #0077cc;
+    --accent2: #38b6e8;
+    --text:    #0f2a4a;
+    --muted:   #5a7fa8;
+    --white:   #ffffff;
+  }
+  html { scroll-behavior: smooth; }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 15px; line-height: 1.6; overflow-x: hidden; }
+  body.modal-open { overflow: hidden; }
+  body::before { content:''; position:fixed; inset:0; background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E"); pointer-events:none; z-index:9990; opacity:.4; }
+  ::-webkit-scrollbar { width:4px; }
+  ::-webkit-scrollbar-track { background:var(--bg); }
+  ::-webkit-scrollbar-thumb { background:var(--accent); border-radius:2px; }
+
+  /* NAV */
+  nav { position:fixed; top:0; left:0; right:0; z-index:1000; display:flex; align-items:center; justify-content:space-between; padding:0 48px; height:64px; background:rgba(255,255,255,.92); backdrop-filter:blur(12px); border-bottom:1px solid var(--border); }
+  .nav-logo { font-family:'Bebas Neue',sans-serif; font-size:28px; letter-spacing:4px; color:var(--text); text-decoration:none; }
+  .nav-logo span { color:var(--accent); }
+  .nav-links { display:flex; gap:36px; list-style:none; }
+  .nav-links a { color:var(--muted); text-decoration:none; font-size:12px; font-weight:500; letter-spacing:1.5px; text-transform:uppercase; transition:color .2s; position:relative; }
+  .nav-links a::after { content:''; position:absolute; bottom:-4px; left:0; width:0; height:1px; background:var(--accent); transition:width .25s; }
+  .nav-links a:hover { color:var(--text); }
+  .nav-links a:hover::after { width:100%; }
+  .nav-cta { background:var(--accent) !important; color:var(--white) !important; padding:8px 20px; font-size:11px !important; letter-spacing:1.5px; font-weight:700 !important; }
+  .nav-cta::after { display:none !important; }
+  .nav-cta:hover { background:var(--accent2) !important; transform:translateY(-1px); }
+
+  /* HERO */
+  .hero { min-height:100vh; display:grid; grid-template-columns:1fr 1fr; padding-top:64px; overflow:hidden; }
+  .hero-left { padding:100px 48px 80px 80px; display:flex; flex-direction:column; justify-content:center; position:relative; z-index:2; }
+  .hero-tag { display:inline-flex; align-items:center; gap:8px; font-family:'Space Mono',monospace; font-size:11px; color:var(--accent); letter-spacing:2px; text-transform:uppercase; margin-bottom:32px; opacity:0; animation:fadeUp .6s .2s forwards; }
+  .hero-tag::before { content:''; width:24px; height:1px; background:var(--accent); }
+  .hero-title { font-family:'Bebas Neue',sans-serif; font-size:clamp(72px,9vw,130px); line-height:.92; color:var(--text); letter-spacing:2px; opacity:0; animation:fadeUp .7s .35s forwards; }
+  .hero-title .accent { color:var(--accent); }
+  .hero-title .stroke { -webkit-text-stroke:2px var(--accent); color:transparent; }
+  .hero-desc { margin-top:28px; font-size:16px; color:var(--muted); max-width:420px; line-height:1.7; opacity:0; animation:fadeUp .7s .5s forwards; }
+  .hero-since { margin-top:16px; font-family:'Space Mono',monospace; font-size:12px; color:var(--accent2); opacity:0; animation:fadeUp .7s .6s forwards; }
+  .hero-actions { margin-top:48px; display:flex; gap:16px; opacity:0; animation:fadeUp .7s .7s forwards; }
+
+  .btn-primary { background:var(--accent); color:var(--white); padding:14px 32px; text-decoration:none; font-weight:700; font-size:13px; letter-spacing:1px; text-transform:uppercase; transition:background .2s,transform .15s; display:inline-block; clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,12px 100%,0 calc(100% - 12px)); cursor:pointer; border:none; font-family:'DM Sans',sans-serif; }
+  .btn-primary:hover { background:var(--accent2); transform:translateY(-2px); }
+  .btn-secondary { border:1px solid var(--border); color:var(--text); padding:14px 32px; text-decoration:none; font-weight:500; font-size:13px; letter-spacing:1px; text-transform:uppercase; transition:border-color .2s,color .2s,transform .15s; display:inline-block; cursor:pointer; background:none; font-family:'DM Sans',sans-serif; }
+  .btn-secondary:hover { border-color:var(--accent); color:var(--accent); transform:translateY(-2px); }
+
+  .hero-right { position:relative; display:flex; align-items:center; justify-content:center; overflow:hidden; }
+  .hero-graphic { position:absolute; inset:0; background:radial-gradient(ellipse 60% 70% at 60% 50%,rgba(0,119,204,.13) 0%,transparent 70%),linear-gradient(135deg,#dceefb,var(--bg)); }
+  .gear-svg { width:420px; height:420px; animation:rotateSlow 40s linear infinite; opacity:.2; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); }
+  .hero-stats { position:absolute; bottom:0; right:0; display:grid; grid-template-columns:1fr 1fr; gap:1px; background:var(--border); opacity:0; animation:fadeUp .7s .9s forwards; }
+  .stat-box { background:var(--surface); padding:28px 32px; position:relative; overflow:hidden; }
+  .stat-box::before { content:''; position:absolute; top:0; left:0; width:3px; height:0; background:var(--accent); transition:height .3s; }
+  .stat-box:hover::before { height:100%; }
+  .stat-num { font-family:'Bebas Neue',sans-serif; font-size:42px; color:var(--text); line-height:1; }
+  .stat-num span { color:var(--accent); }
+  .stat-label { font-size:11px; color:var(--muted); letter-spacing:1.5px; text-transform:uppercase; margin-top:4px; }
+
+  /* MARQUEE */
+  .marquee-wrap { border-top:1px solid var(--border); border-bottom:1px solid var(--border); background:var(--surface); overflow:hidden; padding:16px 0; }
+  .marquee-track { display:flex; animation:marquee 22s linear infinite; white-space:nowrap; }
+  .marquee-item { font-family:'Bebas Neue',sans-serif; font-size:15px; letter-spacing:4px; color:var(--muted); padding:0 40px; text-transform:uppercase; }
+  .marquee-item .dot { color:var(--accent); margin-right:40px; }
+
+  /* SECTIONS */
+  .section { padding:100px 80px; }
+  .section-header { display:flex; align-items:flex-end; justify-content:space-between; margin-bottom:60px; }
+  .section-tag { font-family:'Space Mono',monospace; font-size:11px; color:var(--accent); letter-spacing:2px; text-transform:uppercase; margin-bottom:12px; display:flex; align-items:center; gap:10px; }
+  .section-tag::before { content:''; width:20px; height:1px; background:var(--accent); }
+  .section-title { font-family:'Bebas Neue',sans-serif; font-size:clamp(40px,5vw,64px); color:var(--text); letter-spacing:2px; line-height:1; }
+  .hint-label { color:var(--muted); font-size:12px; letter-spacing:1.5px; text-transform:uppercase; display:flex; align-items:center; gap:8px; padding-bottom:4px; border-bottom:1px dashed var(--border); font-style:italic; }
+
+  /* CATEGORY GRID */
+  .cat-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--border); }
+  .cat-card { background:var(--surface); padding:40px 32px; text-decoration:none; display:flex; flex-direction:column; gap:16px; position:relative; overflow:hidden; transition:background .2s,box-shadow .2s; cursor:pointer; }
+  .cat-card::before { content:''; position:absolute; bottom:0; left:0; right:0; height:3px; background:var(--accent); transform:scaleX(0); transform-origin:left; transition:transform .3s cubic-bezier(.4,0,.2,1); }
+  .cat-card:hover { background:#e8f4ff; box-shadow:inset 0 0 0 1px var(--accent); }
+  .cat-card:hover::before { transform:scaleX(1); }
+  .cat-num { font-family:'Space Mono',monospace; font-size:11px; color:var(--muted); letter-spacing:2px; }
+  .cat-icon { font-size:32px; margin:4px 0; transition:transform .2s; }
+  .cat-card:hover .cat-icon { transform:scale(1.1) rotate(-5deg); }
+  .cat-name { font-family:'Bebas Neue',sans-serif; font-size:22px; color:var(--text); letter-spacing:1.5px; line-height:1.1; }
+  .cat-sub { font-size:12px; color:var(--muted); line-height:1.5; }
+  .cat-arrow { margin-top:auto; color:var(--accent); font-size:18px; transition:transform .2s; font-weight:700; }
+  .cat-card:hover .cat-arrow { transform:translateX(6px); }
+  .cat-badge { position:absolute; top:16px; right:16px; background:var(--accent); color:var(--white); font-size:9px; letter-spacing:1.5px; text-transform:uppercase; padding:3px 8px; font-family:'Space Mono',monospace; opacity:0; transition:opacity .2s; }
+  .cat-card:hover .cat-badge { opacity:1; }
+
+  /* ABOUT */
+  .about-section { padding:0 80px 100px; display:grid; grid-template-columns:1fr 1fr; gap:80px; align-items:center; }
+  .about-visual { position:relative; height:500px; }
+  .about-bg { position:absolute; inset:0; background:linear-gradient(135deg,#dceefb,#b8d8f5); border:1px solid var(--border); overflow:hidden; }
+  .about-bg::after { content:''; position:absolute; inset:0; background:repeating-linear-gradient(45deg,transparent,transparent 30px,rgba(0,119,204,.04) 30px,rgba(0,119,204,.04) 31px); }
+  .about-year { position:absolute; bottom:-20px; right:-20px; font-family:'Bebas Neue',sans-serif; font-size:180px; color:rgba(0,119,204,.1); line-height:1; letter-spacing:-4px; pointer-events:none; z-index:2; }
+  .about-badge { position:absolute; top:40px; left:40px; background:var(--accent); color:var(--white); font-family:'Space Mono',monospace; font-size:11px; letter-spacing:2px; text-transform:uppercase; padding:10px 20px; z-index:3; }
+  .about-center-text { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); text-align:center; z-index:3; }
+  .about-center-text .big { font-family:'Bebas Neue',sans-serif; font-size:80px; color:var(--accent); line-height:1; letter-spacing:4px; }
+  .about-center-text .small { font-size:12px; color:var(--muted); letter-spacing:3px; text-transform:uppercase; margin-top:4px; }
+  .about-title { font-family:'Bebas Neue',sans-serif; font-size:56px; color:var(--text); line-height:1; letter-spacing:2px; margin-bottom:24px; }
+  .about-title .line2 { color:var(--accent); }
+  .about-text { color:var(--muted); font-size:15px; line-height:1.8; margin-bottom:32px; }
+  .features-list { list-style:none; display:flex; flex-direction:column; gap:16px; margin-bottom:40px; }
+  .features-list li { display:flex; align-items:center; gap:16px; font-size:14px; color:var(--text); }
+  .feat-dot { width:6px; height:6px; border-radius:50%; background:var(--accent); flex-shrink:0; }
+
+  /* BRANDS */
+  .brands-section { padding:60px 80px; border-top:1px solid var(--border); }
+  .brands-label { font-family:'Space Mono',monospace; font-size:10px; color:var(--muted); letter-spacing:3px; text-transform:uppercase; text-align:center; margin-bottom:40px; }
+  .brands-row { display:flex; justify-content:center; align-items:center; gap:48px; flex-wrap:wrap; }
+  .brand-badge { font-family:'Bebas Neue',sans-serif; font-size:20px; color:var(--border); letter-spacing:3px; transition:color .2s; cursor:default; }
+  .brand-badge:hover { color:var(--muted); }
+
+  /* CONTACT */
+  .contact-section { margin:0 80px 80px; background:var(--surface); border:1px solid var(--border); position:relative; overflow:hidden; }
+  .contact-section::before { content:''; position:absolute; left:0; top:0; bottom:0; width:4px; background:linear-gradient(to bottom,var(--accent),var(--accent2)); }
+  .contact-section::after { content:''; position:absolute; right:-80px; top:-80px; width:280px; height:280px; border-radius:50%; background:radial-gradient(circle,rgba(0,119,204,.06) 0%,transparent 70%); pointer-events:none; }
+  .contact-header { padding:56px 64px 32px; }
+  .contact-eyebrow { font-family:'Space Mono',monospace; font-size:10px; color:var(--accent); letter-spacing:3px; text-transform:uppercase; margin-bottom:12px; }
+  .contact-heading { font-family:'Bebas Neue',sans-serif; font-size:40px; color:var(--text); letter-spacing:2px; line-height:1; margin-bottom:8px; }
+  .contact-addr { font-size:14px; color:var(--muted); display:flex; align-items:center; gap:8px; }
+
+  /* FORM */
+  .contact-form { padding:0 64px 56px; display:grid; grid-template-columns:1fr 1fr; gap:20px; position:relative; z-index:1; }
+  .form-group { display:flex; flex-direction:column; gap:8px; }
+  .form-group.full { grid-column:1/-1; }
+  .form-label { font-family:'Space Mono',monospace; font-size:10px; color:var(--accent); letter-spacing:2px; text-transform:uppercase; }
+  .form-input, .form-textarea, .form-select { background:var(--bg); border:1px solid var(--border); color:var(--text); font-family:'DM Sans',sans-serif; font-size:14px; padding:12px 16px; transition:border-color .2s,box-shadow .2s; outline:none; width:100%; }
+  .form-input:focus, .form-textarea:focus, .form-select:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(0,119,204,.1); }
+  .form-textarea { resize:vertical; min-height:120px; }
+  .form-select { appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%235a7fa8' stroke-width='1.5' fill='none'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 16px center; cursor:pointer; }
+  .form-row-submit { grid-column:1/-1; display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; padding-top:8px; }
+  .form-note { font-size:12px; color:var(--muted); }
+  .form-success { display:none; grid-column:1/-1; background:#e6f4ea; border:1px solid #a8d5b0; color:#1a6e2e; padding:16px 20px; font-size:14px; font-weight:500; }
+
+  /* FOOTER */
+  footer { border-top:1px solid var(--border); padding:32px 80px; display:flex; justify-content:space-between; align-items:center; }
+  .footer-logo { font-family:'Bebas Neue',sans-serif; font-size:20px; letter-spacing:4px; color:var(--muted); }
+  .footer-logo span { color:var(--accent); }
+  .footer-copy { font-family:'Space Mono',monospace; font-size:10px; color:var(--muted); letter-spacing:1.5px; }
+
+  /* ═══ PRODUCT MODAL ═══ */
+  .modal-overlay { position:fixed; inset:0; z-index:5000; background:rgba(5,20,50,.6); backdrop-filter:blur(6px); display:flex; align-items:center; justify-content:center; padding:24px; opacity:0; pointer-events:none; transition:opacity .3s; }
+  .modal-overlay.active { opacity:1; pointer-events:all; }
+  .modal { background:var(--surface); border:1px solid var(--border); width:100%; max-width:800px; max-height:90vh; overflow-y:auto; position:relative; transform:translateY(32px) scale(.97); transition:transform .35s cubic-bezier(.4,0,.2,1); box-shadow:0 40px 100px rgba(0,30,80,.22); }
+  .modal-overlay.active .modal { transform:translateY(0) scale(1); }
+
+  .modal-header { padding:36px 48px 24px; border-bottom:1px solid var(--border); position:sticky; top:0; background:var(--surface); z-index:2; display:flex; align-items:flex-start; justify-content:space-between; gap:16px; }
+  .modal-header-left { display:flex; align-items:center; gap:20px; }
+  .modal-icon-wrap { width:64px; height:64px; background:var(--bg); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:30px; flex-shrink:0; }
+  .modal-num { font-family:'Space Mono',monospace; font-size:10px; color:var(--accent); letter-spacing:2px; display:block; margin-bottom:4px; }
+  .modal-title { font-family:'Bebas Neue',sans-serif; font-size:32px; color:var(--text); letter-spacing:2px; line-height:1; }
+  .modal-close { width:40px; height:40px; border:1px solid var(--border); background:none; cursor:pointer; color:var(--muted); font-size:18px; transition:border-color .2s,color .2s,background .2s; flex-shrink:0; display:flex; align-items:center; justify-content:center; }
+  .modal-close:hover { border-color:var(--accent); color:var(--white); background:var(--accent); }
+
+  .modal-body { padding:32px 48px 44px; }
+  .modal-desc { color:var(--muted); font-size:15px; line-height:1.8; margin-bottom:32px; padding-bottom:28px; border-bottom:1px solid var(--border); }
+
+  .modal-subcats { display:flex; flex-direction:column; gap:32px; }
+  .subcat-title { font-family:'Bebas Neue',sans-serif; font-size:17px; color:var(--accent); letter-spacing:2px; margin-bottom:14px; display:flex; align-items:center; gap:10px; }
+  .subcat-title::before { content:''; width:14px; height:2px; background:var(--accent); flex-shrink:0; }
+  .subcat-items { display:grid; grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); gap:8px; }
+  .subcat-item { background:var(--bg); border:1px solid var(--border); padding:11px 15px; font-size:13px; color:var(--text); transition:border-color .2s,background .2s,color .2s; display:flex; align-items:center; gap:10px; line-height:1.3; }
+  .subcat-item:hover { border-color:var(--accent); background:#deeeff; color:var(--accent); }
+  .subcat-item::before { content:'›'; color:var(--accent2); font-weight:700; font-size:16px; flex-shrink:0; }
+
+  .modal-cta { margin-top:36px; padding-top:28px; border-top:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px; background:linear-gradient(135deg,#f0f8ff,#e6f2ff); padding:24px 28px; margin-left:-48px; margin-right:-48px; margin-bottom:-44px; }
+  .modal-cta-text { font-size:14px; color:var(--muted); }
+  .modal-cta-text strong { color:var(--text); display:block; font-size:16px; margin-bottom:2px; }
+
+  /* ANIMATIONS */
+  @keyframes fadeUp { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes marquee { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
+  @keyframes rotateSlow { from{transform:translate(-50%,-50%) rotate(0deg)} to{transform:translate(-50%,-50%) rotate(360deg)} }
+  .reveal { opacity:0; transform:translateY(30px); transition:opacity .7s,transform .7s; }
+  .reveal.visible { opacity:1; transform:translateY(0); }
+
+  /* RESPONSIVE */
+  @media(max-width:900px){
+    nav{padding:0 20px}
+    .nav-links{display:none}
+    .hero{grid-template-columns:1fr}
+    .hero-right{display:none}
+    .hero-left{padding:90px 24px 60px}
+    .section{padding:60px 24px}
+    .section-header{flex-direction:column;align-items:flex-start;gap:12px}
+    .cat-grid{grid-template-columns:1fr 1fr}
+    .about-section{grid-template-columns:1fr;padding:0 24px 60px}
+    .about-visual{height:240px}
+    .contact-section{margin:0 24px 60px}
+    .contact-header{padding:32px 28px 20px}
+    .contact-form{padding:0 28px 36px;grid-template-columns:1fr}
+    .form-group.full,.form-row-submit{grid-column:1}
+    footer{padding:24px;flex-direction:column;gap:12px;text-align:center}
+    .brands-section{padding:40px 24px}
+    .modal-header{padding:20px 20px 16px}
+    .modal-body{padding:20px 20px 28px}
+    .subcat-items{grid-template-columns:1fr 1fr}
+    .modal-cta{margin-left:-20px;margin-right:-20px;margin-bottom:-28px;flex-direction:column;align-items:flex-start}
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="#"><span>F</span>RAGA</a>
+  <ul class="nav-links">
+    <li><a href="#categorias">Productos</a></li>
+    <li><a href="#nosotros">Nosotros</a></li>
+    <li><a href="#contacto" class="nav-cta">Contacto</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-left">
+    <div class="hero-tag">Industria Argentina</div>
+    <h1 class="hero-title">
+      HERRA<br>
+      <span class="accent">MIEN</span><br>
+      <span class="stroke">TAS</span>
+    </h1>
+    <p class="hero-desc">Herramientas de corte, abrasivos e instrumentos de medición para la industria. Stock permanente. Atención personalizada.</p>
+    <p class="hero-since">// Desde 1978 — Santos Lugares, Bs As</p>
+    <div class="hero-actions">
+      <a href="#categorias" class="btn-primary">Ver productos</a>
+      <a href="#contacto" class="btn-secondary">Contactar</a>
+    </div>
+  </div>
+  <div class="hero-right">
+    <div class="hero-graphic"></div>
+    <svg class="gear-svg" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M100 20 L108 36 L125 30 L126 48 L143 50 L138 67 L153 74 L142 88 L153 102 L138 110 L143 127 L126 129 L125 147 L108 140 L100 156 L92 140 L75 147 L74 129 L57 127 L62 110 L47 102 L58 88 L47 74 L62 67 L57 50 L74 48 L75 30 L92 36 Z" stroke="#0077cc" stroke-width="1" fill="none"/>
+      <circle cx="100" cy="100" r="30" stroke="#0077cc" stroke-width="1" fill="none"/>
+      <circle cx="100" cy="100" r="8" stroke="#0077cc" stroke-width="1.5" fill="none"/>
+      <line x1="100" y1="60" x2="100" y2="140" stroke="#0077cc" stroke-width=".5"/>
+      <line x1="60" y1="100" x2="140" y2="100" stroke="#0077cc" stroke-width=".5"/>
+      <line x1="72" y1="72" x2="128" y2="128" stroke="#0077cc" stroke-width=".5"/>
+      <line x1="128" y1="72" x2="72" y2="128" stroke="#0077cc" stroke-width=".5"/>
+    </svg>
+    <div class="hero-stats">
+      <div class="stat-box"><div class="stat-num">45<span>+</span></div><div class="stat-label">Años en el mercado</div></div>
+      <div class="stat-box"><div class="stat-num">8<span>+</span></div><div class="stat-label">Líneas de producto</div></div>
+      <div class="stat-box"><div class="stat-num">100<span>%</span></div><div class="stat-label">Stock permanente</div></div>
+      <div class="stat-box"><div class="stat-num">1978</div><div class="stat-label">Año de fundación</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee-wrap">
+  <div class="marquee-track">
+    <span class="marquee-item"><span class="dot">◆</span> HERRAMIENTAS DE CORTE</span>
+    <span class="marquee-item"><span class="dot">◆</span> ABRASIVOS INDUSTRIALES</span>
+    <span class="marquee-item"><span class="dot">◆</span> INSTRUMENTOS DE MEDICIÓN</span>
+    <span class="marquee-item"><span class="dot">◆</span> ROSCADO PROFESIONAL</span>
+    <span class="marquee-item"><span class="dot">◆</span> PORTA INSERTOS</span>
+    <span class="marquee-item"><span class="dot">◆</span> RUEDAS DIAMANTE Y BORAZÓN</span>
+    <span class="marquee-item"><span class="dot">◆</span> HERRAMIENTAS DE CORTE</span>
+    <span class="marquee-item"><span class="dot">◆</span> ABRASIVOS INDUSTRIALES</span>
+    <span class="marquee-item"><span class="dot">◆</span> INSTRUMENTOS DE MEDICIÓN</span>
+    <span class="marquee-item"><span class="dot">◆</span> ROSCADO PROFESIONAL</span>
+    <span class="marquee-item"><span class="dot">◆</span> PORTA INSERTOS</span>
+    <span class="marquee-item"><span class="dot">◆</span> RUEDAS DIAMANTE Y BORAZÓN</span>
+  </div>
+</div>
+
+<!-- CATEGORIES -->
+<section class="section" id="categorias">
+  <div class="section-header reveal">
+    <div>
+      <div class="section-tag">Catálogo completo</div>
+      <h2 class="section-title">NUESTROS<br>PRODUCTOS</h2>
+    </div>
+    <span class="hint-label">↓ Tocá una categoría para ver el detalle</span>
+  </div>
+  <div class="cat-grid reveal">
+    <div class="cat-card" onclick="openModal(0)">
+      <div class="cat-badge">Ver detalle</div>
+      <div class="cat-num">01</div>
+      <div class="cat-icon">⚙️</div>
+      <div class="cat-name">Herramientas<br>de Corte</div>
+      <div class="cat-sub">Mechas, fresas, calisuares, sierras circulares, limas rotativas, bits</div>
+      <div class="cat-arrow">→</div>
+    </div>
+    <div class="cat-card" onclick="openModal(1)">
+      <div class="cat-badge">Ver detalle</div>
+      <div class="cat-num">02</div>
+      <div class="cat-icon">🔥</div>
+      <div class="cat-name">Abrasivos</div>
+      <div class="cat-sub">Discos de corte, flap, fibra, diamantados, copas, ruedas, puntas montadas</div>
+      <div class="cat-arrow">→</div>
+    </div>
+    <div class="cat-card" onclick="openModal(2)">
+      <div class="cat-badge">Ver detalle</div>
+      <div class="cat-num">03</div>
+      <div class="cat-icon">📐</div>
+      <div class="cat-name">Instrumentos<br>de Medición</div>
+      <div class="cat-sub">Calibres, micrómetros, reloj comparador, alesámetros, bloques patrón</div>
+      <div class="cat-arrow">→</div>
+    </div>
+    <div class="cat-card" onclick="openModal(3)">
+      <div class="cat-badge">Ver detalle</div>
+      <div class="cat-num">04</div>
+      <div class="cat-icon">🔩</div>
+      <div class="cat-name">Roscado</div>
+      <div class="cat-sub">Machos acero rápido, helicoidales, GUN, laminadores, pasta y fluidos</div>
+      <div class="cat-arrow">→</div>
+    </div>
+    <div class="cat-card" onclick="openModal(4)">
+      <div class="cat-badge">Ver detalle</div>
+      <div class="cat-num">05</div>
+      <div class="cat-icon">🔧</div>
+      <div class="cat-name">Accesorios<br>para Máquinas</div>
+      <div class="cat-sub">Contrapuntas, conos de sujeción, espigas, pinzas serie ER</div>
+      <div class="cat-arrow">→</div>
+    </div>
+    <div class="cat-card" onclick="openModal(5)">
+      <div class="cat-badge">Ver detalle</div>
+      <div class="cat-num">06</div>
+      <div class="cat-icon">🏭</div>
+      <div class="cat-name">Porta<br>Insertos</div>
+      <div class="cat-sub">Torneado, fresado, ranurado, roscado, perforado</div>
+      <div class="cat-arrow">→</div>
+    </div>
+    <div class="cat-card" onclick="openModal(6)">
+      <div class="cat-badge">Ver detalle</div>
+      <div class="cat-num">07</div>
+      <div class="cat-icon">⚒️</div>
+      <div class="cat-name">Herramientas<br>para Torno</div>
+      <div class="cat-sub">Línea completa para tornos convencionales y CNC</div>
+      <div class="cat-arrow">→</div>
+    </div>
+    <div class="cat-card" onclick="openModal(7)">
+      <div class="cat-badge">Ver detalle</div>
+      <div class="cat-num">08</div>
+      <div class="cat-icon">💎</div>
+      <div class="cat-name">Diamante<br>y Borazón</div>
+      <div class="cat-sub">Ruedas de afilado, rectificado, discos de corte, pasta de diamante</div>
+      <div class="cat-arrow">→</div>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section class="about-section" id="nosotros">
+  <div class="about-visual reveal">
+    <div class="about-bg"></div>
+    <div class="about-year">78</div>
+    <div class="about-badge">// Est. 1978</div>
+    <div class="about-center-text">
+      <div class="big">45</div>
+      <div class="small">años de<br>experiencia</div>
+    </div>
+  </div>
+  <div class="about-content reveal">
+    <div class="section-tag">Quiénes somos</div>
+    <h2 class="about-title">TRADICIÓN<br><span class="line2">E INDUSTRIA</span></h2>
+    <p class="about-text">Desde 1978, en nuestro propio local en Santos Lugares, seguimos creyendo que el mejor servicio es tener en stock lo que nuestros clientes necesitan, al mejor precio posible. Más de cuatro décadas abasteciendo a la industria argentina.</p>
+    <ul class="features-list">
+      <li><span class="feat-dot"></span> Stock permanente de todas las líneas</li>
+      <li><span class="feat-dot"></span> Marcas de calidad comprobada</li>
+      <li><span class="feat-dot"></span> Atención personalizada y especializada</li>
+      <li><span class="feat-dot"></span> Local propio en Santos Lugares, Buenos Aires</li>
+      <li><span class="feat-dot"></span> Más de 45 años de experiencia en el sector</li>
+    </ul>
+    <a href="#contacto" class="btn-primary">Consultarnos</a>
+  </div>
+</section>
+
+<!-- BRANDS -->
+<div class="brands-section reveal">
+  <p class="brands-label">Marcas que distribuimos</p>
+  <div class="brands-row">
+    <span class="brand-badge">NORTON</span>
+    <span class="brand-badge">DORMER</span>
+    <span class="brand-badge">WALTER</span>
+    <span class="brand-badge">KENNAMETAL</span>
+    <span class="brand-badge">MITUTOYO</span>
+    <span class="brand-badge">SANDVIK</span>
+    <span class="brand-badge">3M</span>
+    <span class="brand-badge">PFERD</span>
+  </div>
+</div>
+
+<!-- CONTACT -->
+<div class="contact-section reveal" id="contacto">
+  <div class="contact-header">
+    <div class="contact-eyebrow">// Contacto directo</div>
+    <h3 class="contact-heading">¿NECESITÁS UN PRESUPUESTO?</h3>
+    <p class="contact-addr">📍 Asamblea 4014, B1676ALF Santos Lugares, Buenos Aires</p>
+  </div>
+  <div class="contact-form">
+    <div class="form-group">
+      <label class="form-label" for="nombre">Nombre completo *</label>
+      <input class="form-input" type="text" id="nombre" placeholder="Ej: Juan García">
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="empresa">Empresa</label>
+      <input class="form-input" type="text" id="empresa" placeholder="Nombre de la empresa">
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="email">Email *</label>
+      <input class="form-input" type="email" id="email" placeholder="email@empresa.com">
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="telefono">Teléfono</label>
+      <input class="form-input" type="tel" id="telefono" placeholder="+54 11 0000-0000">
+    </div>
+    <div class="form-group full">
+      <label class="form-label" for="categoria">Categoría de interés</label>
+      <select class="form-select form-input" id="categoria">
+        <option value="">Seleccioná una categoría...</option>
+        <option>Herramientas de Corte</option>
+        <option>Abrasivos</option>
+        <option>Instrumentos de Medición</option>
+        <option>Roscado</option>
+        <option>Accesorios para Máquinas</option>
+        <option>Porta Insertos</option>
+        <option>Herramientas para Torno</option>
+        <option>Ruedas de Diamante / Borazón</option>
+        <option>Consulta general</option>
+      </select>
+    </div>
+    <div class="form-group full">
+      <label class="form-label" for="mensaje">Mensaje *</label>
+      <textarea class="form-textarea" id="mensaje" placeholder="Describí lo que necesitás: cantidades, especificaciones técnicas, medidas..."></textarea>
+    </div>
+    <div class="form-row-submit full">
+      <p class="form-note">* Campos obligatorios. Te respondemos a la brevedad.</p>
+      <button class="btn-primary" onclick="submitForm()">Enviar consulta →</button>
+    </div>
+    <div class="form-success" id="formSuccess">✓ &nbsp;¡Consulta enviada! Nos comunicamos con vos a la brevedad.</div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo"><span>F</span>RAGA</div>
+  <div class="footer-copy">© 2024 Carlos Fraga — Herramientas de corte y abrasivos</div>
+</footer>
+
+<!-- PRODUCT MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModalOutside(event)">
+  <div class="modal" id="modalBox">
+    <div class="modal-header">
+      <div class="modal-header-left">
+        <div class="modal-icon-wrap" id="modalIcon"></div>
+        <div>
+          <span class="modal-num" id="modalNum"></span>
+          <h2 class="modal-title" id="modalTitle"></h2>
+        </div>
+      </div>
+      <button class="modal-close" onclick="closeModal()" title="Cerrar">✕</button>
+    </div>
+    <div class="modal-body">
+      <p class="modal-desc" id="modalDesc"></p>
+      <div class="modal-subcats" id="modalSubcats"></div>
+      <div class="modal-cta">
+        <div class="modal-cta-text">
+          <strong>¿Necesitás este producto?</strong>
+          Completá el formulario de contacto y te asesoramos con precio y disponibilidad.
+        </div>
+        <button class="btn-primary" onclick="closeModal(); setTimeout(()=>{ document.getElementById('contacto').scrollIntoView({behavior:'smooth'}); },250)">Consultar precio →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const products = [
+  {
+    num:'01', icon:'⚙️', title:'Herramientas de Corte',
+    desc:'Línea completa de herramientas de corte en acero rápido (HSS) y metal duro para mecanizado de precisión. Todos los materiales disponibles en stock permanente para entrega inmediata.',
+    subcats:[
+      {name:'Mechas', items:['Mechas HSS cortas','Mechas HSS largas','Mechas HSS extralarg.','Mechas escalonadas','Mechas de centrar','Mechas para inoxidable','Mechas para aluminio']},
+      {name:'Fresas', items:['Fresas frontales HSS','Fresas de mango cilíndrico','Fresas de mango cónico','Fresas de ranura','Fresas de ángulo','Fresas de forma']},
+      {name:'Calisuares', items:['Calisuares HSS estándar','Calisuares cobalto','Calisuares TiN recubierto']},
+      {name:'Sierras Circulares', items:['Sierras para metales HSS','Sierras bimetálicas','Sierras de ranura']},
+      {name:'Limas Rotativas', items:['Limas cilíndricas','Limas cónicas','Limas esféricas','Limas de llama','Limas ovaladas']},
+      {name:'Bits', items:['Bits planos','Bits Phillips','Bits Torx','Bits hexagonales','Juegos de bits']},
+    ]
+  },
+  {
+    num:'02', icon:'🔥', title:'Abrasivos',
+    desc:'Amplia gama de abrasivos industriales para corte, desbaste y acabado superficial. Productos de primera calidad para uso profesional con amoladora angular, banco y maquinaria estacionaria.',
+    subcats:[
+      {name:'Discos de Corte y Desbaste', items:['Discos corte metal 115mm','Discos corte metal 125mm','Discos corte metal 180mm','Discos corte metal 230mm','Discos desbaste','Discos inox']},
+      {name:'Discos Flap', items:['Flap 115mm gr.40','Flap 115mm gr.60','Flap 115mm gr.80','Flap 125mm','Flap 180mm','Flap 230mm']},
+      {name:'Discos de Fibra', items:['Fibra zirconio','Fibra aluminio','Fibra cerámica','Fibra carburo silicio']},
+      {name:'Discos y Ruedas para Limpieza', items:['Ruedas de hilo de acero','Discos fibra no tejida','Cepillos de copa','Satinado y pulido']},
+      {name:'Discos Diamantados', items:['Corte en seco','Corte en húmedo','Turbo segmentado','Corte cerámica','Corte hormigón']},
+      {name:'Copas, Puntas y Ruedas', items:['Copas de desbaste','Puntas montadas','Ruedas rectas','Ruedas cóncavas','Panes doble faz']},
+    ]
+  },
+  {
+    num:'03', icon:'📐', title:'Instrumentos de Medición',
+    desc:'Instrumentos de medición de precisión para control dimensional en taller y laboratorio. Marcas reconocidas con trazabilidad y garantía de exactitud metrológica.',
+    subcats:[
+      {name:'Calibres', items:['Calibres analógicos','Calibres digitales','Calibres de puntas','Calibres de altura','Calibres de profundidad']},
+      {name:'Micrómetros', items:['Micrómetros exteriores','Micrómetros interiores','Micrómetros de profundidad','Micrómetros de rosca','Sets de micrómetros']},
+      {name:'Relojes Comparadores y Palpadores', items:['Reloj comparador 0.01mm','Reloj comparador 0.001mm','Reloj palpador','Reloj de centrar']},
+      {name:'Bases y Accesorios', items:['Bases magnéticas','Bases articuladas','Porta reloj universal']},
+      {name:'Medición Especial', items:['Alesámetros','Medidores de espesor','Bloques patrón','Transportadores de ángulo','Escuadras combinadas']},
+    ]
+  },
+  {
+    num:'04', icon:'🔩', title:'Roscado',
+    desc:'Soluciones completas para roscado a mano y a máquina. Machos en acero rápido, helicoidales y especiales para todo tipo de material, más fluidos y accesorios complementarios.',
+    subcats:[
+      {name:'Machos Acero Rápido STD', items:['Machos métricos M3–M24','Machos BSP','Machos UNC / UNF','Machos cónicos NPT','Juegos de machos']},
+      {name:'Machos Helicoidales', items:['Hélice 35° para aluminio','Hélice 45° para fundición','Hélice 30° universal']},
+      {name:'Machos para Roscar a Máquina', items:['Machos para CNC','Machos para centros de mecanizado','Machos cortos']},
+      {name:'Machos Punta GUN y Laminadores', items:['Punta GUN para pasantes','Laminadores de rosca','Laminadores para aluminio']},
+      {name:'Machos Tuerqueros', items:['Tuerqueros largos rectos','Tuerqueros doblados']},
+      {name:'Accesorios de Roscado', items:['Pasta para roscado','Fluido de corte','Cojinetes abiertos BSP','Cojinetes cerrados métricos','Porta machos flotantes']},
+    ]
+  },
+  {
+    num:'05', icon:'🔧', title:'Accesorios para Máquinas',
+    desc:'Accesorios de sujeción y transmisión para tornos, fresadoras y centros de mecanizado. Precisión dimensional garantizada para montaje seguro y repetible.',
+    subcats:[
+      {name:'Contrapuntas y Puntos', items:['Contrapuntas giratorias cono morse','Puntos fijos endurecidos','Puntos de reducción','Puntos medio vivo']},
+      {name:'Conos de Sujeción', items:['Conos Morse CM1 a CM5','Porta fresas cono Morse','Porta brocas cono BT','Reducción CM a CM']},
+      {name:'Espigas y Reducción', items:['Espigas porta fresas','Conos de reducción','Extensiones de mandril','Adaptadores DIN']},
+      {name:'Pinzas Serie ER', items:['Pinzas ER11','Pinzas ER16','Pinzas ER20','Pinzas ER25','Pinzas ER32','Pinzas ER40','Porta pinzas ER']},
+    ]
+  },
+  {
+    num:'06', icon:'🏭', title:'Herramientas Porta Insertos',
+    desc:'Portaherramientas para insertos intercambiables de carburo. Soluciones para torneado, fresado, ranurado, roscado y perforado en acero, fundición y materiales especiales.',
+    subcats:[
+      {name:'Torneado', items:['Herramientas ext. SCLCR','Herramientas ext. MCLNR','Herramientas int. S-SCLCR','Porta insertos neutros','Porta insertos laterales']},
+      {name:'Fresado', items:['Cabezales de fresado','Fresas de cara','Fresas de plaquitas','Porta insertos fresado']},
+      {name:'Ranurado', items:['Ranurar exterior','Ranurar interior','Tronzar','Porta insertos MGMN']},
+      {name:'Roscado con Inserto', items:['Roscar exteriores','Roscar interiores','Porta insertos 16ER/16IR']},
+      {name:'Perforado / Mandrinado', items:['Barras de mandrinar','Herramientas de agrandar','Cabezales de mandrinado fino']},
+    ]
+  },
+  {
+    num:'07', icon:'⚒️', title:'Herramientas para Torno',
+    desc:'Herramientas de perfil macizo en acero rápido y carburo soldado para tornos paralelos convencionales. Corte, refrentar, roscar y ranurar con geometrías estándar y especiales.',
+    subcats:[
+      {name:'Herramientas Rectas', items:['Cuchilla recta derecha','Cuchilla recta izquierda','Cuchilla neutra','Cuchilla de refrentar']},
+      {name:'Herramientas de Roscar', items:['Punta 60° métrico','Punta 55° Whitworth','Punta 29° ACME','Punta cuadrada']},
+      {name:'Herramientas de Ranurar / Tronzar', items:['Cuchilla de ranura 3mm','Cuchilla de ranura 4mm','Cuchilla de ranura 5mm','Cuchilla de tronzar']},
+      {name:'Herramientas Soldadas', items:['Carburo soldado desbaste','Carburo soldado acabado','Punta carburo 60°']},
+    ]
+  },
+  {
+    num:'08', icon:'💎', title:'Ruedas de Diamante y Borazón',
+    desc:'Herramientas superabrasivas de diamante y CBN (borazón) para rectificado, afilado y corte de materiales duros. Máxima vida útil y acabado superficial de alta precisión.',
+    subcats:[
+      {name:'Afilados', items:['Ruedas diamante para HSS','Ruedas diamante para carburo','Ruedas CBN para acero templado','Ruedas cóncavas para filo']},
+      {name:'Rectificados', items:['Ruedas rectificar cilíndricas','Ruedas rectificar planas','Ruedas rectificar interiores','Ruedas copa diamante']},
+      {name:'Discos de Corte', items:['Discos diamante metal sinterizado','Discos diamante electrolítico','Discos corte cerámica avanzada']},
+      {name:'Puntas Montadas Diamante', items:['Puntas cilíndricas','Puntas esféricas','Puntas cónicas','Puntas de llama']},
+      {name:'Pastas y Limas', items:['Pasta diamante 1 micron','Pasta diamante 3 micron','Pasta diamante 6 micron','Limas planas diamantadas','Limas redondas diamantadas','Juego de limas diamantadas']},
+    ]
+  },
+];
+
+function openModal(idx) {
+  const p = products[idx];
+  document.getElementById('modalNum').textContent   = p.num;
+  document.getElementById('modalIcon').textContent  = p.icon;
+  document.getElementById('modalTitle').textContent = p.title;
+  document.getElementById('modalDesc').textContent  = p.desc;
+  let html = '';
+  p.subcats.forEach(sc => {
+    html += `<div class="subcat">
+      <div class="subcat-title">${sc.name}</div>
+      <div class="subcat-items">${sc.items.map(i=>`<div class="subcat-item">${i}</div>`).join('')}</div>
+    </div>`;
+  });
+  document.getElementById('modalSubcats').innerHTML = html;
+  document.getElementById('modalOverlay').classList.add('active');
+  document.body.classList.add('modal-open');
+  document.getElementById('modalBox').scrollTop = 0;
+}
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('active');
+  document.body.classList.remove('modal-open');
+}
+function closeModalOutside(e) {
+  if (e.target === document.getElementById('modalOverlay')) closeModal();
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+function submitForm() {
+  const n = document.getElementById('nombre').value.trim();
+  const em = document.getElementById('email').value.trim();
+  const m = document.getElementById('mensaje').value.trim();
+  if (!n || !em || !m) { alert('Por favor completá los campos obligatorios: Nombre, Email y Mensaje.'); return; }
+  document.getElementById('formSuccess').style.display = 'block';
+  ['nombre','empresa','email','telefono','mensaje','categoria'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+  setTimeout(()=>{ document.getElementById('formSuccess').style.display='none'; }, 6000);
+}
+
+const observer = new IntersectionObserver(entries => {
+  entries.forEach((e,i) => { if (e.isIntersecting) setTimeout(()=>e.target.classList.add('visible'), i*80); });
+}, {threshold:.08});
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
